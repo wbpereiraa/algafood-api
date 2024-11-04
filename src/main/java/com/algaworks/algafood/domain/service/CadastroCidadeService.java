@@ -16,6 +16,15 @@ import com.algaworks.algafood.domain.repository.EstadoRepository;
 @Service
 public class CadastroCidadeService {
 
+	private static final String MSG_NAO_PODE_SER_REMOVIDA_POIS_ESTA_EM_USO 
+		= "Cidade de código %d não pode ser removida, pois está em uso";
+
+	private static final String MSG_NAO_EXISTE_UM_CADASTRO_DE_CIDADE_COM_CODIGO 
+		= "Não existe um cadastro de cidade com código %d";
+
+	private static final String MSG_NAO_EXISTE_CADASTRO_DE_ESTADO_COM_CODIGO 
+		= "Não existe cadastro de estado com código %d";
+
 	@Autowired
 	private CidadeRepository cidadeRepository;
 	
@@ -28,7 +37,7 @@ public class CadastroCidadeService {
         
         if (!estadoRepository.existsById(estadoId)) {
             throw new EntidadeNaoEncontradaException(
-                String.format("Não existe cadastro de estado com código %d", estadoId));
+                String.format(MSG_NAO_EXISTE_CADASTRO_DE_ESTADO_COM_CODIGO, estadoId));
         }
         
         cidade.setEstado(estado.get());
@@ -40,14 +49,21 @@ public class CadastroCidadeService {
 		try {
 			if (!cidadeRepository.existsById(cidadeId)) {
 				throw new EntidadeNaoEncontradaException(
-					String.format("Não existe um cadastro de cidade com código %d", cidadeId));
+					String.format(MSG_NAO_EXISTE_UM_CADASTRO_DE_CIDADE_COM_CODIGO, cidadeId));
 		
 			}
 			cidadeRepository.deleteById(cidadeId);
 			
 		}catch (DataIntegrityViolationException e) {
 			throw new EntidadeEmUsoException(
-					String.format("Cidade de código %d não pode ser removida, pois está em uso", cidadeId));
+					String.format(MSG_NAO_PODE_SER_REMOVIDA_POIS_ESTA_EM_USO, cidadeId));
 		}
+	}
+	
+	public Cidade buscarOuFalhar(Long cidadeId) {
+		return cidadeRepository.findById(cidadeId)
+				.orElseThrow(() -> new EntidadeNaoEncontradaException(
+						String.format(MSG_NAO_EXISTE_UM_CADASTRO_DE_CIDADE_COM_CODIGO, 
+								cidadeId)));
 	}
 }
